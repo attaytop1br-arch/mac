@@ -139,4 +139,41 @@ if st.button("Gerar Preços Inteligentes 🚀", use_container_width=True):
                 
                 if margem_atual >= 0.18 and preco_18 == 0:
                     preco_18 = preco_teste
-                if margem_atual >= 0.25 and preco
+                if margem_atual >= 0.25 and preco_25 == 0:
+                    preco_25 = preco_teste
+                if margem_atual >= 0.30 and preco_30 == 0:
+                    preco_30 = preco_teste
+                    
+                preco_teste += 0.10
+
+            # Exibe os resultados (Mantido)
+            st.divider()
+            st.markdown('<p style="text-align: center; color: #E2E8F0; font-size: 1.3rem; font-weight: 600; margin-bottom: 25px;">Sugestões de Preço Final</p>', unsafe_allow_html=True)
+            
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.markdown(f'''
+                <div class="glass-card" style="box-shadow: 0 10px 30px rgba(255, 75, 43, 0.12);">
+                    <div class="label-margin">🔥 Agressivo (18%)</div>
+                    <div class="price-agressivo">R$ {preco_18:.2f}</div>
+                </div>
+                ''', unsafe_allow_html=True)
+                
+            with col2:
+                st.markdown(f'''
+                <div class="glass-card" style="box-shadow: 0 10px 30px rgba(0, 201, 255, 0.12);">
+                    <div class="label-margin">⚖️ Intermediário (25%)</div>
+                    <div class="price-intermediario">R$ {preco_25:.2f}</div>
+                </div>
+                ''', unsafe_allow_html=True)
+                
+            with col3:
+                st.markdown(f'''
+                <div class="glass-card" style="box-shadow: 0 10px 30px rgba(233, 64, 87, 0.12);">
+                    <div class="label-margin">💎 Premium (30%)</div>
+                    <div class="price-premium">R$ {preco_30:.2f}</div>
+                </div>
+                ''', unsafe_allow_html=True)
+    else:
+        st.warning("Por favor, insira um custo da peça válido para calcular.")
