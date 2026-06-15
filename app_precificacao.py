@@ -8,7 +8,7 @@ st.set_page_config(page_title="Otto Calculator Pro", page_icon="📈", layout="c
 st.markdown("""
 <style>
     /* Estética de Motion Design e Glassmorphism */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;600;700;900&display=swap');
 
     html, body, [class*="st-"] {
         font-family: 'Inter', sans-serif;
@@ -89,7 +89,7 @@ st.markdown("""
     @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
 
     /* Customização dos Campos do Streamlit */
-    div[data-baseweb="input"], div[data-baseweb="select"] > div {
+    div[data-baseweb="input"] {
         background-color: rgba(255, 255, 255, 0.05) !important;
         border-radius: 15px !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -112,32 +112,22 @@ st.markdown("""
 st.markdown('<p class="input-title money-highlight">💰 1. Custo Total do Produto (R$)</p>', unsafe_allow_html=True)
 custo_produto = st.number_input("", min_value=0.0, step=1.0, format="%.2f", help="Soma do tecido, confecção e aviamentos", key="custo")
 
-st.markdown('<p class="input-title tax-highlight">🏢 2. Regime Tributário (Receita Federal)</p>', unsafe_allow_html=True)
-opcoes_imposto = {
-    "MEI - Microempreendedor Individual (0% no faturamento)": 0.0,
-    "Simples Nacional - Faixa 1 (Até R$ 180 mil/ano) ➔ 4.0%": 0.04,
-    "Simples Nacional - Faixa 2 (De R$ 180 mil a R$ 360 mil) ➔ 7.3%": 0.073,
-    "Simples Nacional - Faixa 3 (De R$ 360 mil a R$ 720 mil) ➔ 9.5%": 0.095,
-    "Simples Nacional - Faixa 4 (De R$ 720 mil a R$ 1.8 milhão) ➔ 10.7%": 0.107,
-    "Simples Nacional - Faixa 5 (De R$ 1.8 milhão a R$ 3.6 milhões) ➔ 14.3%": 0.143,
-    "Simples Nacional - Faixa 6 (De R$ 3.6 milhões a R$ 4.8 milhões) ➔ 19.0%": 0.19
-}
-selecao_imposto = st.selectbox("", list(opcoes_imposto.keys()), key="imposto")
-aliquota_imposto = opcoes_imposto[selecao_imposto]
+st.markdown('<p class="input-title tax-highlight">🏢 2. Alíquota de Imposto do seu Regime (%)</p>', unsafe_allow_html=True)
+imposto_input = st.number_input("", min_value=0.0, max_value=100.0, value=4.0, step=0.1, format="%.1f", help="Digite a porcentagem de imposto cobrada sobre a sua venda (Ex: 0.0 para MEI, 4.0 para Simples Nacional)", key="imposto")
+aliquota_imposto = imposto_input / 100.0
 
-st.markdown('<p class="input-title ads-highlight">📢 3. Investimento em ADS (%)</p>', unsafe_allow_html=True)
-ads_input = st.number_input("", min_value=0.0, max_value=100.0, value=5.0, step=0.5, format="%.1f", help="Porcentagem do preço final destinada a anúncios (Ex: 5.0 para 5%)", key="ads")
-ads_percent = ads_input / 100.0
+st.markdown('<p class="input-title ads-highlight">📢 3. Custo Fixo de ADS por Peça (R$)</p>', unsafe_allow_html=True)
+custo_ads_fixo = st.number_input("", min_value=0.0, step=0.50, value=2.00, format="%.2f", help="Insira o valor em Reais que deseja embutir para o tráfego pago deste produto", key="ads")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # 4. MOTOR DE CÁLCULO FINANCEIRO
 if st.button("CALCULAR MARGENS BLINDADAS 🚀", use_container_width=True):
     if custo_produto > 0:
-        with st.spinner("Sincronizando alíquotas e calculando taxas..."):
+        with st.spinner("Processando margens com custos fixos e variáveis..."):
             time.sleep(0.8)
             
-            preco_teste = custo_produto
+            preco_teste = custo_produto + custo_ads_fixo
             preco_18 = preco_25 = preco_30 = 0
 
             # Loop de Precificação Bruta
@@ -152,12 +142,11 @@ if st.button("CALCULAR MARGENS BLINDADAS 🚀", use_container_width=True):
                 else:
                     taxa_shopee = (preco_teste * 0.14) + 26.00
                 
-                # Descontos variáveis aplicados sobre o preço de venda
+                # Imposto calculado sobre o preço final de venda
                 imposto_total = preco_teste * aliquota_imposto
-                custo_ads = preco_teste * ads_percent
                 
-                # O que sobra limpo no bolso
-                lucro_liquido = preco_teste - custo_produto - taxa_shopee - imposto_total - custo_ads
+                # Lucro Líquido considerando o ADS fixo em Reais
+                lucro_liquido = preco_teste - custo_produto - taxa_shopee - imposto_total - custo_ads_fixo
                 margem_atual = lucro_liquido / preco_teste if preco_teste > 0 else 0
                 
                 # Travamento das margens alvo
@@ -168,10 +157,12 @@ if st.button("CALCULAR MARGENS BLINDADAS 🚀", use_container_width=True):
                 if margem_atual >= 0.30 and preco_30 == 0:
                     preco_30 = preco_teste
                 
-                preco_teste += 0.05 # Incremento fino para arredondamento preciso
+                preco_teste += 0.05 # Incremento para precisão centesimal
 
             # 5. RENDERIZAÇÃO DOS CARDS
             st.markdown("<hr>", unsafe_allow_html=True)
+            st.markdown('<p style="text-align: center; color: #E2E8F0; font-size: 1.3rem; font-weight: 600; margin-bottom: 25px;">Sugestões de Preço Final</p>', unsafe_allow_html=True)
+            
             col1, col2, col3 = st.columns(3)
 
             with col1:
@@ -198,7 +189,7 @@ if st.button("CALCULAR MARGENS BLINDADAS 🚀", use_container_width=True):
                 </div>
                 """, unsafe_allow_html=True)
             
-            st.success("Matemática validada! Seu lucro, impostos e tráfego estão garantidos nesses valores.")
+            st.success("Matemática validada! Custos fixos e impostos cobertos.")
             st.balloons()
     else:
         st.error("Insira o custo do produto para iniciarmos o cálculo.")
