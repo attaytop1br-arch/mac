@@ -3,7 +3,7 @@ import streamlit as st
 # Configura o visual da página
 st.set_page_config(page_title="Motor de Precificação", page_icon="🛒")
 
-st.title("Calculadora Automática - Shopee 🛒")
+st.title("Calculadora Otto - Shopee 🛒")
 st.write("Insira os dados da sua produção para gerar os preços de venda ideais.")
 
 # Troca o 'input' do terminal por uma caixa de digitação na tela
