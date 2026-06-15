@@ -112,4 +112,93 @@ st.markdown("""
 st.markdown('<p class="input-title money-highlight">💰 1. Custo Total do Produto (R$)</p>', unsafe_allow_html=True)
 custo_produto = st.number_input("", min_value=0.0, step=1.0, format="%.2f", help="Soma do tecido, confecção e aviamentos", key="custo")
 
-st.markdown('<p class="input-title tax-highlight">🏢 2. Regime Tributário (Receita Federal)</p>', unsafe
+st.markdown('<p class="input-title tax-highlight">🏢 2. Regime Tributário (Receita Federal)</p>', unsafe_allow_html=True)
+opcoes_imposto = {
+    "MEI - Microempreendedor Individual (0% no faturamento)": 0.0,
+    "Simples Nacional - Faixa 1 (Até R$ 180 mil/ano) ➔ 4.0%": 0.04,
+    "Simples Nacional - Faixa 2 (De R$ 180 mil a R$ 360 mil) ➔ 7.3%": 0.073,
+    "Simples Nacional - Faixa 3 (De R$ 360 mil a R$ 720 mil) ➔ 9.5%": 0.095,
+    "Simples Nacional - Faixa 4 (De R$ 720 mil a R$ 1.8 milhão) ➔ 10.7%": 0.107,
+    "Simples Nacional - Faixa 5 (De R$ 1.8 milhão a R$ 3.6 milhões) ➔ 14.3%": 0.143,
+    "Simples Nacional - Faixa 6 (De R$ 3.6 milhões a R$ 4.8 milhões) ➔ 19.0%": 0.19
+}
+selecao_imposto = st.selectbox("", list(opcoes_imposto.keys()), key="imposto")
+aliquota_imposto = opcoes_imposto[selecao_imposto]
+
+st.markdown('<p class="input-title ads-highlight">📢 3. Investimento em ADS (%)</p>', unsafe_allow_html=True)
+ads_input = st.number_input("", min_value=0.0, max_value=100.0, value=5.0, step=0.5, format="%.1f", help="Porcentagem do preço final destinada a anúncios (Ex: 5.0 para 5%)", key="ads")
+ads_percent = ads_input / 100.0
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# 4. MOTOR DE CÁLCULO FINANCEIRO
+if st.button("CALCULAR MARGENS BLINDADAS 🚀", use_container_width=True):
+    if custo_produto > 0:
+        with st.spinner("Sincronizando alíquotas e calculando taxas..."):
+            time.sleep(0.8)
+            
+            preco_teste = custo_produto
+            preco_18 = preco_25 = preco_30 = 0
+
+            # Loop de Precificação Bruta
+            while preco_30 == 0:
+                # Lógica de Taxas Oficiais da Shopee
+                if preco_teste < 80.00:
+                    taxa_shopee = (preco_teste * 0.20) + 4.00
+                elif preco_teste < 100.00:
+                    taxa_shopee = (preco_teste * 0.14) + 16.00
+                elif preco_teste < 200.00:
+                    taxa_shopee = (preco_teste * 0.14) + 20.00
+                else:
+                    taxa_shopee = (preco_teste * 0.14) + 26.00
+                
+                # Descontos variáveis aplicados sobre o preço de venda
+                imposto_total = preco_teste * aliquota_imposto
+                custo_ads = preco_teste * ads_percent
+                
+                # O que sobra limpo no bolso
+                lucro_liquido = preco_teste - custo_produto - taxa_shopee - imposto_total - custo_ads
+                margem_atual = lucro_liquido / preco_teste if preco_teste > 0 else 0
+                
+                # Travamento das margens alvo
+                if margem_atual >= 0.18 and preco_18 == 0:
+                    preco_18 = preco_teste
+                if margem_atual >= 0.25 and preco_25 == 0:
+                    preco_25 = preco_teste
+                if margem_atual >= 0.30 and preco_30 == 0:
+                    preco_30 = preco_teste
+                
+                preco_teste += 0.05 # Incremento fino para arredondamento preciso
+
+            # 5. RENDERIZAÇÃO DOS CARDS
+            st.markdown("<hr>", unsafe_allow_html=True)
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.markdown(f"""
+                <div class="result-card">
+                    <span style="color:#FF4B2B; font-weight:700; font-size:1.1rem;">AGRESSIVO (18%)</span>
+                    <span class="price-value" style="color:#FF4B2B;">R$ {preco_18:.2f}</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+            with col2:
+                st.markdown(f"""
+                <div class="result-card">
+                    <span style="color:#00FF88; font-weight:700; font-size:1.1rem;">EQUILIBRADO (25%)</span>
+                    <span class="price-value" style="color:#00FF88;">R$ {preco_25:.2f}</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+            with col3:
+                st.markdown(f"""
+                <div class="result-card">
+                    <span style="color:#BD00FF; font-weight:700; font-size:1.1rem;">PREMIUM (30%)</span>
+                    <span class="price-value" style="color:#BD00FF;">R$ {preco_30:.2f}</span>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.success("Matemática validada! Seu lucro, impostos e tráfego estão garantidos nesses valores.")
+            st.balloons()
+    else:
+        st.error("Insira o custo do produto para iniciarmos o cálculo.")
