@@ -76,7 +76,7 @@ st.markdown('<p class="titulo-glow">Calculadora Otto 🛒</p>', unsafe_allow_htm
 st.markdown('<p class="subtitulo">Preços blindados para máxima lucratividade.</p>', unsafe_allow_html=True)
 
 # Campo de digitação customizado
-custo = st.number_input("Custo Total da Peça (Tecido + Oficina + Aviamentos) - R$", min_value=0.0, step=1.0, format="%.2f")
+custo = st.number_input("Custo Total do Produto - R$", min_value=0.0, step=1.0, format="%.2f")
 
 # Botão de ação
 if st.button("Gerar Preços Inteligentes 🚀", use_container_width=True):
